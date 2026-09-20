@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PAPUCHE 2 - Style & Care</title>
+
+    <style>
+        :root {
+            --main-bg: #f0f2f5;
+            --panel-bg: #ffffff;
+            --plm-blue: #2c3e50;
+            --plm-green: #27ae60;
+            --plm-orange: #e67e22;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--main-bg);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            user-select: none;
+        }
+
+        #game-container {
+            width: 90%;
+            max-width: 400px;
+            background: var(--panel-bg);
+            margin: 15px 0;
+            padding: 20px;
+            border-radius: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* BARRE STATISTICHE */
+        .stats { margin-bottom: 10px; text-align: left; font-size: 13px; font-weight: bold; }
+        .bar-outer { height: 10px; background: #e0e0e0; border-radius: 10px; margin: 3px 0 8px 0; overflow: hidden; }
+        .bar-inner { height: 100%; width: 100%; transition: width 0.5s ease; }
+        #hunger-bar { background: #ff4757; }
+        #energy-bar { background: #ffa502; }
+        #happiness-bar { background: #2ed573; }
+
+        /* DISPLAY COLLAGE E ANIMAZIONI */
+        #peluche-display {
+            position: relative;
+            width: 240px;
+            height: 280px;
+            margin: 10px auto;
+            background: #fdfdfd;
+            border-radius: 20px;
+            border: 1px solid #eee;
+            overflow: hidden;
+            transition: transform 0.2s ease;
+        }
+
+        .layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+        }
+
+        #layer-base { z-index: 1; }
+        #layer-pants { z-index: 2; }
+        #layer-shirt { z-index: 3; }
+        #layer-glasses { z-index: 4; }
+        #layer-hat { z-index: 5; }
+
+        /* EFFETTI VISIVI ANIMATI */
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-12px) scale(1.05); }
+        }
+
+        @keyframes floatText {
+            0% { opacity: 0; transform: translateY(0) scale(0.5); }
+            50% { opacity: 1; transform: translateY(-30px) scale(1.2); }
+            100% { opacity: 0; transform: translateY(-50px) scale(1); }
+        }
+
+        .animate-bounce {
+            animation: bounce 0.4s ease infinite alternate;
+        }
+
+        .floating-effect {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 38px;
+            font-weight: bold;
+            color: #ff4757;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            pointer-events: none;
+            z-index: 20;
+            animation: floatText 1.2s forwards ease-out;
+        }
+
+        /* PULSANTI D'AZIONE */
+        .actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 15px; }
+        button { 
+            padding: 12px; border: none; border-radius: 12px; 
+            background: var(--plm-blue); color: white; font-weight: bold;
+            font-size: 13px; cursor: pointer;
+            transition: 0.1s;
+        }
+        button:active { transform: scale(0.95); }
+
+        /* SOTTOPAGINE POPUP */
+        .subpage {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 25px;
+            padding: 20px;
+            box-sizing: border-box;
+            z-index: 10;
+            flex-direction: column;
+        }
+
+        .subpage-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .close-btn {
+            background: #ff4757;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+        }
+
+        .grid-menu {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            overflow-y: auto;
+            max-height: 420px;
+            padding-right: 5px;
+        }
+
+        .menu-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .menu-card:hover { background: #eef2f5; border-color: #ced4da; }
+        .menu-card .icon { font-size: 32px; margin-bottom: 5px; }
+        .menu-card .title { font-size: 12px; font-weight: bold; color: #333; }
+        .menu-card .stats-info { font-size: 10px; color: #666; margin-top: 4px; }
+
+        /* SEZIONE ARMADIO */
+        .closet { margin-top: 20px; text-align: left; }
+        .closet h4 { margin: 10px 0 5px 0; font-size: 13px; color: #555; text-transform: uppercase; }
+        .item-row { display: flex; gap: 8px; overflow-x: auto; padding: 5px 0; }
+        .thumb { 
+            width: 48px; height: 48px; background: #f8f8f8; 
+            border: 2px solid #ddd; border-radius: 10px; flex-shrink: 0; 
+            cursor: pointer; background-size: cover; background-position: center;
+            display: flex; align-items: center; justify-content: center; font-size: 12px;
+        }
+        .thumb.active { border-color: var(--plm-green); background-color: #e8f8f0; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <h3 style="margin-top:0;">Papuche 2</h3>
+    
+    <!-- STATISTICHE -->
+    <div class="stats">
+        Fame: <div class="bar-outer"><div id="hunger-bar" class="bar-inner"></div></div>
+        Energia: <div class="bar-outer"><div id="energy-bar" class="bar-inner"></div></div>
+        Felicità: <div class="bar-outer"><div id="happiness-bar" class="bar-inner"></div></div>
+    </div>
+
+    <div id="status-text" style="font-style: italic; margin-bottom: 10px; color: #666;">Sto bene!</div>
+
+    <!-- DISPLAY DEL PELUCHE CON ANCORA EFFETTI -->
+    <div id="peluche-display">
+        <div id="layer-base" class="layer"></div>
+        <div id="layer-pants" class="layer"></div>
+        <div id="layer-shirt" class="layer"></div>
+        <div id="layer-glasses" class="layer"></div>
+        <div id="layer-hat" class="layer"></div>
+    </div>
+
+    <!-- AZIONI PRINCIPALI -->
+    <div class="actions">
+        <button onclick="openSubpage('food-page')">PAPPA 🍕</button>
+        <button id="sleep-btn" onclick="toggleSleep()">DORMI 💤</button>
+        <button onclick="openSubpage('games-page')">GIOCO 🎮</button>
+    </div>
+
+    <!-- SOTTOPAGINA PAPPA -->
+    <div id="food-page" class="subpage">
+        <div class="subpage-header">
+            <h4 style="margin:0;">Scegli la Pappa 🍕</h4>
+            <button class="close-btn" onclick="closeSubpage('food-page')">Chiudi ✖</button>
+        </div>
+        <div id="food-grid" class="grid-menu"></div>
+    </div>
+
+    <!-- SOTTOPAGINA GIOCHI -->
+    <div id="games-page" class="subpage">
+        <div class="subpage-header">
+            <h4 style="margin:0;">Scegli un Gioco 🎮</h4>
+            <button class="close-btn" onclick="closeSubpage('games-page')">Chiudi ✖</button>
+        </div>
+        <div id="games-grid" class="grid-menu"></div>
+    </div>
+
+    <!-- ARMADIO COMPLETO -->
+    <div class="closet">
+        <h4>Pantaloni</h4>
+        <div id="pants-selector" class="item-row"></div>
+
+        <h4>Magliette</h4>
+        <div id="shirt-selector" class="item-row"></div>
+
+        <h4>Occhiali</h4>
+        <div id="glasses-selector" class="item-row"></div>
+
+        <h4>Cappelli</h4>
+        <div id="hat-selector" class="item-row"></div>
+    </div>
+</div>
+
+<script>
+    // EFFETTI AUDIO SINTETIZZATI WEB AUDIO API (FUNZIONA SU TUTTI I DISPOSITIVI SENZA FILE MP3!)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playSound(type) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        const now = audioCtx.currentTime;
+
+        if (type === 'eat') {
+            // Suono Munch/Gnam
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(150, now);
+            osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
+            gain.gain.setValueAtTime(0.3, now);
+            gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+            osc.start(now);
+            osc.stop(now + 0.15);
+        } else if (type === 'drink') {
+            // Suono Gulp
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(400, now);
+            osc.frequency.exponentialRampToValueAtTime(180, now + 0.2);
+            gain.gain.setValueAtTime(0.3, now);
+            gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+            osc.start(now);
+            osc.stop(now + 0.2);
+        } else if (type === 'play') {
+            // Jingle Allegro Win
+            const notes = [261, 329, 392, 523];
+            notes.forEach((freq, index) => {
+                const noteOsc = audioCtx.createOscillator();
+                const noteGain = audioCtx.createGain();
+                noteOsc.type = 'sine';
+                noteOsc.frequency.setValueAtTime(freq, now + index * 0.08);
+                noteGain.gain.setValueAtTime(0.2, now + index * 0.08);
+                noteGain.gain.linearRampToValueAtTime(0.01, now + (index + 1) * 0.08);
+                noteOsc.connect(noteGain);
+                noteGain.connect(audioCtx.destination);
+                noteOsc.start(now + index * 0.08);
+                noteOsc.stop(now + (index + 1) * 0.08);
+            });
+        } else if (type === 'sleep') {
+            // Tono rilassante nanna
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(300, now);
+            osc.frequency.exponentialRampToValueAtTime(150, now + 0.5);
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.linearRampToValueAtTime(0.01, now + 0.5);
+            osc.start(now);
+            osc.stop(now + 0.5);
+        }
+    }
+
+    // ANIMAZIONI VISIVE A SCHERMO
+    function showVisualEffect(text, emoji) {
+        const display = document.getElementById('peluche-display');
+        
+        // Effetto rimbalzo peluche
+        display.classList.add('animate-bounce');
+        setTimeout(() => display.classList.remove('animate-bounce'), 800);
+
+        // Effetto testo/emoji fluttuante
+        const floatEl = document.createElement('div');
+        floatEl.className = 'floating-effect';
+        floatEl.innerHTML = `${emoji} <br><span style="font-size:20px;">${text}</span>`;
+        display.appendChild(floatEl);
+
+        setTimeout(() => floatEl.remove(), 1200);
+    }
+
+    const baseImages = {
+        standing: 'https://i.postimg.cc/7YdKZqgC/NUDO-IN-PIEDI.jpg',
+        hungry: 'https://i.postimg.cc/Kvw08mn4/NUDO-AFFAMATO.jpg',
+        sleeping: 'https://i.postimg.cc/fTp8RMxJ/NUDO-DORME.jpg',
+        tired: 'https://i.postimg.cc/dtp5VJ8h/NUDO-STANCO.jpg',
+        sad: 'https://i.postimg.cc/fTp8RMxS/NUDO-TRISTE.jpg'
+    };
+
+    const foodsList = [
+        { name: 'Mele Salutari', icon: '🍎', hunger: 15, energy: 0, happiness: 0, type: 'eat' },
+        { name: 'Piadina / Pizza', icon: '🍕', hunger: 35, energy: 0, happiness: 5, type: 'eat' },
+        { name: 'Succhetto', icon: '🧃', hunger: 10, energy: 5, happiness: 5, type: 'drink' },
+        { name: 'Burger Papuche', icon: '🍔', hunger: 50, energy: -5, happiness: 10, type: 'eat' },
+        { name: 'Fetta di Torta', icon: '🍰', hunger: 20, energy: 0, happiness: 25, type: 'eat' },
+        { name: 'Caffè Espresso', icon: '☕', hunger: 0, energy: 30, happiness: 5, type: 'drink' },
+        { name: 'Bubble Tea', icon: '🧋', hunger: 15, energy: 10, happiness: 15, type: 'drink' },
+        { name: 'Broccolini', icon: '🥦', hunger: 25, energy: 0, happiness: -5, type: 'eat' }
+    ];
+
+    const gamesList = [
+        { name: 'Pallina', icon: '🎾', happiness: 15, energyCost: 5 },
+        { name: 'Videogame', icon: '🎮', happiness: 25, energyCost: 10 },
+        { name: 'Puzzle', icon: '🧩', happiness: 20, energyCost: 8 },
+        { name: 'Disegno', icon: '🎨', happiness: 15, energyCost: 4 },
+        { name: 'Calcio al Parco', icon: '⚽', happiness: 40, energyCost: 25 },
+        { name: 'Lo Skate', icon: '🛹', happiness: 35, energyCost: 20 },
+        { name: 'Peluche Amico', icon: '🧸', happiness: 10, energyCost: 2 },
+        { name: 'Gioco da Tavolo', icon: '🎲', happiness: 30, energyCost: 12 }
+    ];
+
+    const closetData = {
+        pants: [
+            { id: 'p0', img: '', x: 0, y: 0, scale: 1 },
+            { id: 'p1', img: 'https://i.postimg.cc/3xC7Xfrq/PANTALONI-BLU.png', x: 0, y: 0, scale: 1 },
+            { id: 'p2', img: 'https://i.postimg.cc/g0zpNyr4/PANTALONI-ROSSI.png', x: 0, y: 0, scale: 1 },
+            { id: 'p3', img: 'https://i.postimg.cc/Hx984KnG/PANTALONI-VERDI.png', x: 0, y: 0, scale: 1 }
+        ],
+        shirts: [
+            { id: 's0', img: '', x: 0, y: 0, scale: 1 },
+            { id: 's1', img: 'https://i.postimg.cc/dVmv2NQz/MAGLIETTA-BIANCA.png', x: 0, y: 0, scale: 1 },
+            { id: 's2', img: 'https://i.postimg.cc/mrkXLVDN/MAGLIETTA-VERDE.png', x: 0, y: 0, scale: 1 },
+            { id: 's3', img: 'https://i.postimg.cc/T35yHh1z/MAGLIETTA-ROSSA.png', x: 0, y: 0, scale: 1 }
+        ],
+        glasses: [{ id: 'g0', img: '', x: 0, y: 0, scale: 1 }],
+        hats: [{ id: 'h0', img: '', x: 0, y: 0, scale: 1 }]
+    };
+
+    let stats = { hunger: 100, energy: 100, happiness: 100 };
+    let isSleeping = false;
+    let currentLook = { pants: 'p0', shirt: 's0', glasses: 'g0', hat: 'h0' };
+
+    function openSubpage(pageId) {
+        if(isSleeping) return;
+        document.getElementById(pageId).style.display = 'flex';
+    }
+
+    function closeSubpage(pageId) {
+        document.getElementById(pageId).style.display = 'none';
+    }
+
+    function renderSubpages() {
+        const foodGrid = document.getElementById('food-grid');
+        foodGrid.innerHTML = '';
+        foodsList.forEach(item => {
+            let card = document.createElement('div');
+            card.className = 'menu-card';
+            card.innerHTML = `
+                <div class="icon">${item.icon}</div>
+                <div class="title">${item.name}</div>
+                <div class="stats-info">
+                    ${item.hunger ? 'Fame: +' + item.hunger : ''} 
+                    ${item.energy ? 'Energia: ' + (item.energy > 0 ? '+' : '') + item.energy : ''}
+                    ${item.happiness ? 'Felicità: ' + (item.happiness > 0 ? '+' : '') + item.happiness : ''}
+                </div>
+            `;
+            card.onclick = () => eatFood(item);
+            foodGrid.appendChild(card);
+        });
+
+        const gamesGrid = document.getElementById('games-grid');
+        gamesGrid.innerHTML = '';
+        gamesList.forEach(item => {
+            let card = document.createElement('div');
+            card.className = 'menu-card';
+            card.innerHTML = `
+                <div class="icon">${item.icon}</div>
+                <div class="title">${item.name}</div>
+                <div class="stats-info">
+                    Felicità: +${item.happiness}<br>
+                    Energia: -${item.energyCost}
+                </div>
+            `;
+            card.onclick = () => playGame(item);
+            gamesGrid.appendChild(card);
+        });
+    }
+
+    function eatFood(food) {
+        stats.hunger = Math.min(100, Math.max(0, stats.hunger + food.hunger));
+        stats.energy = Math.min(100, Math.max(0, stats.energy + food.energy));
+        stats.happiness = Math.min(100, Math.max(0, stats.happiness + food.happiness));
+        
+        playSound(food.type);
+        showVisualEffect(food.type === 'drink' ? 'Gulp!' : 'Gnam!', food.icon);
+
+        saveGame();
+        updateUI();
+        closeSubpage('food-page');
+    }
+
+    function playGame(game) {
+        if (stats.energy >= game.energyCost) {
+            stats.happiness = Math.min(100, stats.happiness + game.happiness);
+            stats.energy = Math.max(0, stats.energy - game.energyCost);
+            
+            playSound('play');
+            showVisualEffect('EVVIVA!', game.icon);
+
+            saveGame();
+            updateUI();
+            closeSubpage('games-page');
+        } else {
+            alert("Papuche è troppo stanco per questo gioco! Fallo dormire un po'.");
+        }
+    }
+
+    function saveGame() {
+        const data = {
+            stats: stats,
+            isSleeping: isSleeping,
+            currentLook: currentLook,
+            lastTime: Date.now()
+        };
+        localStorage.setItem('papuche_save_master', JSON.stringify(data));
+    }
+
+    function loadGame() {
+        const saved = localStorage.getItem('papuche_save_master');
+        if (saved) {
+            const data = JSON.parse(saved);
+            stats = data.stats;
+            isSleeping = data.isSleeping;
+            currentLook = data.currentLook || currentLook;
+        }
+        renderAllClosets();
+        renderSubpages();
+        applyLook();
+        updateUI();
+    }
+
+    function renderAllClosets() {
+        renderCategory('pants-selector', closetData.pants, 'pants');
+        renderCategory('shirt-selector', closetData.shirts, 'shirt');
+        renderCategory('glasses-selector', closetData.glasses, 'glasses');
+        renderCategory('hat-selector', closetData.hats, 'hat');
+    }
+
+    function renderCategory(containerId, items, key) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = "";
+        items.forEach(item => {
+            let d = document.createElement('div');
+            d.className = `thumb ${currentLook[key] === item.id ? 'active' : ''}`;
+            if (item.img) {
+                d.style.backgroundImage = `url('${item.img}')`;
+            } else {
+                d.innerText = "❌";
+            }
+            d.onclick = () => { 
+                currentLook[key] = item.id; 
+                applyLook(); 
+                renderAllClosets(); 
+                saveGame(); 
+            };
+            container.appendChild(d);
+        });
+    }
+
+    function applyLook() {
+        let currentBase = baseImages.standing;
+        if (isSleeping) {
+            currentBase = baseImages.sleeping;
+        } else if (stats.hunger < 30) {
+            currentBase = baseImages.hungry;
+        } else if (stats.energy < 30) {
+            currentBase = baseImages.tired;
+        } else if (stats.happiness < 30) {
+            currentBase = baseImages.sad;
+        }
+
+        document.getElementById('layer-base').style.backgroundImage = `url('${currentBase}')`;
+
+        const setLayer = (layerId, item) => {
+            const el = document.getElementById(layerId);
+            if (item && item.img) {
+                el.style.backgroundImage = `url('${item.img}')`;
+                el.style.transform = `translate(${item.x || 0}px, ${item.y || 0}px) scale(${item.scale || 1})`;
+            } else {
+                el.style.backgroundImage = 'none';
+            }
+        };
+
+        setLayer('layer-pants', closetData.pants.find(i => i.id === currentLook.pants));
+        setLayer('layer-shirt', closetData.shirts.find(i => i.id === currentLook.shirt));
+        setLayer('layer-glasses', closetData.glasses.find(i => i.id === currentLook.glasses));
+        setLayer('layer-hat', closetData.hats.find(i => i.id === currentLook.hat));
+    }
+
+    function updateUI() {
+        document.getElementById('hunger-bar').style.width = stats.hunger + "%";
+        document.getElementById('energy-bar').style.width = stats.energy + "%";
+        document.getElementById('happiness-bar').style.width = stats.happiness + "%";
+        
+        const btn = document.getElementById('sleep-btn');
+        const status = document.getElementById('status-text');
+        
+        if (isSleeping) {
+            status.innerText = "Zzz... sta dormendo...";
+            btn.innerText = "SVEGLIA ⏰";
+        } else {
+            if (stats.hunger < 30) {
+                status.innerText = "Ho molta fame!";
+            } else if (stats.energy < 30) {
+                status.innerText = "Sono stanchissimo...";
+            } else if (stats.happiness < 30) {
+                status.innerText = "Mi annoio...";
+            } else {
+                status.innerText = "Sto benissimo!";
+            }
+            btn.innerText = "DORMI 💤";
+        }
+
+        applyLook();
+    }
+
+    function toggleSleep() {
+        isSleeping = !isSleeping;
+        playSound('sleep');
+        saveGame();
+        updateUI();
+    }
+
+    setInterval(() => {
+        if (!isSleeping) {
+            stats.hunger = Math.max(0, stats.hunger - 1);
+            stats.happiness = Math.max(0, stats.happiness - 0.5);
+            stats.energy = Math.max(0, stats.energy - 0.2);
+        } else {
+            stats.energy = Math.min(100, stats.energy + 2);
+        }
+        saveGame();
+        updateUI();
+    }, 10000);
+
+    window.onload = loadGame;
+</script>
+
+</body>
+</html>
