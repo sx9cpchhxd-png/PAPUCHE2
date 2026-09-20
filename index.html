@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>PAPUCHE 2 - Style, Care & Editor</title>
 
+    <!-- FAVICON E ICONA APP PER SCHERMATA HOME (PAPUCHE NORMALE) -->
+    <link rel="icon" type="image/jpeg" href="https://i.postimg.cc/7YdKZqgC/NUDO-IN-PIEDI.jpg">
+    <link rel="apple-touch-icon" href="https://i.postimg.cc/7YdKZqgC/NUDO-IN-PIEDI.jpg">
+
     <style>
         :root {
             --main-bg: #f0f2f5;
@@ -344,19 +348,18 @@
         { name: 'Gioco da Tavolo', icon: '🎲', happiness: 30, energyCost: 12 }
     ];
 
-    /* UPDATE CLOSET DATA WITH EXACT USER POSITIONS */
     const closetData = {
         shirts: [
             { id: "s0", name: "Nessuna", img: "", x: 0, y: 0, scale: 1 },
             { id: "s1", name: "Bianca", img: "https://i.postimg.cc/dVmv2NQz/MAGLIETTA-BIANCA.png", x: 4, y: 0, scale: 0.55 },
-            { id: "s2", name: "Verde", img: "https://i.postimg.cc/mrkXLVDN/MAGLIETTA-VERDE.png", x: 4, y: 4, scale: 0.5 },
-            { id: "s3", name: "Rossa", img: "https://i.postimg.cc/T35yHh1z/MAGLIETTA-ROSSA.png", x: 4, y: 4, scale: 0.5 },
-            { id: "s4", name: "Blu", img: "https://i.postimg.cc/P5C63b12/MAGLIETTA-BLU.png", x: 4, y: 4, scale: 0.5 }
+            { id: "s2", name: "Verde", img: "https://i.postimg.cc/mrkXLVDN/MAGLIETTA-VERDE.png", x: 4, y: 4, scale: 0.50 },
+            { id: "s3", name: "Rossa", img: "https://i.postimg.cc/T35yHh1z/MAGLIETTA-ROSSA.png", x: 4, y: 4, scale: 0.50 },
+            { id: "s4", name: "Blu", img: "https://i.postimg.cc/P5C63b12/MAGLIETTA-BLU.png", x: 4, y: 4, scale: 0.50 }
         ],
         pants: [
             { id: "p0", name: "Nessuno", img: "", x: 0, y: 0, scale: 1 },
-            { id: "p1", name: "Rossi", img: "https://i.postimg.cc/g0zpNyr4/PANTALONI-ROSSI.png", x: 4, y: 52, scale: 0.4 },
-            { id: "p2", name: "Blu", img: "https://i.postimg.cc/3xC7Xfrq/PANTALONI-BLU.png", x: 4, y: 52, scale: 0.4 },
+            { id: "p1", name: "Rossi", img: "https://i.postimg.cc/g0zpNyr4/PANTALONI-ROSSI.png", x: 4, y: 52, scale: 0.40 },
+            { id: "p2", name: "Blu", img: "https://i.postimg.cc/3xC7Xfrq/PANTALONI-BLU.png", x: 4, y: 52, scale: 0.40 },
             { id: "p3", name: "Verdi", img: "https://i.postimg.cc/Hx984KnG/PANTALONI-VERDI.png", x: 8, y: 52, scale: 0.55 },
             { id: "p4", name: "Bianchi", img: "https://i.postimg.cc/VkhhmZzH/PANTALONI-BIANCHI.png", x: 8, y: 52, scale: 0.55 }
         ],
@@ -473,7 +476,6 @@
             isSleeping = data.isSleeping;
             currentLook = data.currentLook || currentLook;
             if(data.closetData) {
-                // Sincronizza posizioni
                 Object.keys(data.closetData).forEach(cat => {
                     data.closetData[cat].forEach(savedItem => {
                         let item = closetData[cat].find(i => i.id === savedItem.id);
@@ -585,6 +587,7 @@
         updateUI();
     }
 
+    /* SISTEMA EDITOR */
     function toggleEditor() {
         const panel = document.getElementById('editor-panel');
         panel.style.display = panel.style.display === 'none' || panel.style.display === '' ? 'block' : 'none';
@@ -614,7 +617,6 @@
         if(!item) return;
         const cat = document.getElementById('edit-category').value;
         
-        // Indossa l'oggetto selezionato per vederlo
         if(cat === 'pants') currentLook.pants = item.id;
         if(cat === 'shirts') currentLook.shirt = item.id;
         if(cat === 'glasses') currentLook.glasses = item.id;
@@ -662,12 +664,11 @@
 
     function copyPositions() {
         const str = JSON.stringify(closetData, null, 2);
-        try {
-            document.execCommand('copy');
+        navigator.clipboard.writeText(str).then(() => {
             alert("Posizioni copiate negli appunti!");
-        } catch(e) {
+        }).catch(() => {
             alert("Copia fallita, salva la schermata!");
-        }
+        });
     }
 
     setInterval(() => {
@@ -684,6 +685,9 @@
 
     window.onload = loadGame;
 </script>
+
+</body>
+</html>
 
 </body>
 </html>
